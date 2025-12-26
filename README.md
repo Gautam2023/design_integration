@@ -1,9 +1,5 @@
 # Design Integration App
 
-A comprehensive Frappe/ERPNext application for managing design workflows, requests, and project integration.
-
-## Features
-
 ### 🎯 Design Request Management
 - Create and manage design requests linked to Sales Orders
 - Track design items through various stages
@@ -150,97 +146,10 @@ The app is designed to integrate with:
 - **Frappe**: User management, permissions, workflows
 - **Custom Apps**: Extensible architecture for additional features
 
-## Troubleshooting
 
-### Common Issues
-
-1. **Dashboard Not Loading**:
-   - Clear browser cache
-   - Run `bench clear-cache`
-   - Check browser console for errors
-
-2. **Permission Errors**:
-   - Verify user roles
-   - Check doctype permissions
-   - Ensure proper role assignments
-
-3. **Data Not Displaying**:
-   - Verify database connections
-   - Check for data in Design Request tables
-   - Review error logs
-
-### Debug Mode
-Enable debug mode in `hooks.py`:
-```python
-# Add to hooks.py for debugging
-app_include_js = [
-    "/assets/design_integration/js/debug.js"
-]
-```
-
-## Development
-
-### Code Structure
-```
-design_integration/
-├── design_integration/
-│   ├── doctype/
-│   │   ├── design_request/
-│   │   ├── design_request_item/
-│   │   └── design_items_dashboard/
-│   ├── templates/
-│   │   └── pages/
-│   │       └── design-items-dashboard.html
-│   ├── public/
-│   │   └── js/
-│   ├── config/
-│   │   └── desktop.py
-│   └── hooks.py
-└── README.md
-```
-
-### Adding New Features
-1. **Create doctype** if needed
-2. **Add Python controller** methods
-3. **Update templates** for UI changes
-4. **Test thoroughly** with different user roles
-5. **Document changes** in README
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
 5. Submit a pull request
 
 ## License
 
 This app is licensed under the MIT License. See `license.txt` for details.
 
-## Support
-
-For support and questions:
-- **Email**: rejithr1995@gmail.com
-- **Issues**: Create GitHub issues for bugs
-- **Documentation**: Check this README and inline code comments
-
-## Changelog
-
-### Version 2.0.0 (Current)
-- ✨ **Complete dashboard redesign** with modern UI
-- 🎨 **Beautiful, responsive design** following Frappe standards
-- 🔧 **Fixed critical dashboard functionality** issues
-- 📱 **Mobile-friendly interface** with responsive design
-- 🚀 **Performance improvements** and optimization
-- 🛡️ **Better error handling** and user feedback
-- 📊 **Enhanced statistics** and real-time updates
-
-### Version 1.0.0
-- Initial release with basic functionality
-- Design request management
-- Basic dashboard implementation
-
----
-
-**Built with ❤️ for the Frappe/ERPNext community**
