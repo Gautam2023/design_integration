@@ -4,7 +4,12 @@
  "creation": "2025-01-31 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
+ "is_submittable": 0,
  "field_order": [
+  "item_code",
+  "item_name",
+  "new_item_code",
+  "new_item_name",
   "item_details_section",
   "item_code",
   "item_name",
@@ -34,6 +39,9 @@
   "bom_name",
   "bom_created",
   "nesting_completed",
+  "revision_requested",
+  "revision_reason",
+  "revision_count",
   "log_section",
   "stage_transition_log",
   "parent",
@@ -219,6 +227,25 @@
    "depends_on": "eval:doc.design_status == 'Nesting'"
   },
   {
+   "fieldname": "revision_requested",
+   "fieldtype": "Check",
+   "label": "Revision Requested",
+   "depends_on": "eval:['Modelling','Production Drawing','BOM','Nesting'].includes(doc.design_status)",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "revision_reason",
+   "fieldtype": "Small Text",
+   "label": "Revision Reason"
+  },
+  {
+   "fieldname": "revision_count",
+   "fieldtype": "Int",
+   "label": "Revision Count",
+   "read_only": 1,
+   "default": 0
+  },
+  {
    "fieldname": "log_section",
    "fieldtype": "Section Break",
    "label": "Stage Transition Log"
@@ -240,10 +267,17 @@
    "fieldtype": "Data",
    "hidden": 1
   },
-  {
+    {
    "fieldname": "parenttype",
    "fieldtype": "Data",
    "hidden": 1
+  },
+  {
+   "fieldname": "design_request",
+   "fieldtype": "Link",
+   "label": "Design Request",
+   "options": "Design Request",
+   "read_only": 1
   }
  ],
  "links": [],
@@ -262,6 +296,7 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   
    "share": 1,
    "write": 1
   },
@@ -274,6 +309,7 @@
    "read": 1,
    "report": 1,
    "role": "Design Manager",
+   
    "share": 1,
    "write": 1
   },
@@ -286,6 +322,7 @@
    "read": 1,
    "report": 1,
    "role": "Design User",
+   
    "share": 1,
    "write": 1
   },
@@ -298,6 +335,7 @@
    "read": 1,
    "report": 1,
    "role": "Project Manager",
+   
    "share": 1,
    "write": 1
   },
@@ -310,6 +348,7 @@
    "read": 1,
    "report": 1,
    "role": "Project User",
+   
    "share": 1,
    "write": 1
   }

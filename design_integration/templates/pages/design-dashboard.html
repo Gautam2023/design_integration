@@ -1,0 +1,102 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<div class="design-dashboard">
+    <div class="dashboard-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 10px; margin-bottom: 2rem;">
+        <h1 class="h2 mb-2">
+            <i class="octicon octicon-tools"></i>
+            Design Integration Dashboard
+        </h1>
+        <p class="text-white-50 mb-0">Manage your design workflow efficiently</p>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card" style="background: linear-gradient(45deg, #4CAF50, #45a049); color: white;">
+                <div class="card-body text-center">
+                    <h3 class="stat-number" id="total-requests">0</h3>
+                    <p class="stat-label">Total Requests</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card" style="background: linear-gradient(45deg, #FF9800, #F57C00); color: white;">
+                <div class="card-body text-center">
+                    <h3 class="stat-number" id="pending-items">0</h3>
+                    <p class="stat-label">Pending Items</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card" style="background: linear-gradient(45deg, #2196F3, #1976D2); color: white;">
+                <div class="card-body text-center">
+                    <h3 class="stat-number" id="completed-items">0</h3>
+                    <p class="stat-label">Completed Items</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card" style="background: linear-gradient(45deg, #F44336, #D32F2F); color: white;">
+                <div class="card-body text-center">
+                    <h3 class="stat-number" id="overdue-items">0</h3>
+                    <p class="stat-label">Overdue Items</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="/app/design-request/new" class="btn btn-primary btn-block">
+                                <i class="octicon octicon-plus"></i> New Design Request
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="/design-tasks" class="btn btn-info btn-block">
+                                <i class="octicon octicon-tasklist"></i> View Tasks
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="/design-items-dashboard" class="btn btn-success btn-block">
+                                <i class="octicon octicon-graph"></i> Items Dashboard
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="/app/design-request" class="btn btn-warning btn-block">
+                                <i class="octicon octicon-list-unordered"></i> All Requests
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+frappe.ready(function() {
+    loadDashboardData();
+});
+
+function loadDashboardData() {
+    frappe.call({
+        method: 'design_integration.design_integration.doctype.design_request.design_request.get_dashboard_stats',
+        callback: function(r) {
+            if (r.message) {
+                document.getElementById('total-requests').textContent = r.message.total_requests || 0;
+                document.getElementById('pending-items').textContent = r.message.pending_items || 0;
+                document.getElementById('completed-items').textContent = r.message.completed_items || 0;
+                document.getElementById('overdue-items').textContent = r.message.overdue_items || 0;
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

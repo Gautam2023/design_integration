@@ -12,21 +12,16 @@ app_description = "Design Integration"
 app_email = "rejithr1995@gmail.com"
 app_license = "mit"
 
-import frappe
-from frappe import _
 
 # Include JS files
 app_include_js = [
 	"/assets/design_integration/js/design_integration.js",
 	"/assets/design_integration/js/design_tasks_page.js",
-	"/assets/design_integration/js/design_request_item_form.js",
-	"/assets/design_integration/js/design_dashboard.js"
+	"/assets/design_integration/js/design_request_item_form.js"
 ]
 
 # Include CSS files
-app_include_css = [
-	"/assets/design_integration/css/design_dashboard.css"
-]
+app_include_css = []
 
 # DocType Events
 doc_events = {

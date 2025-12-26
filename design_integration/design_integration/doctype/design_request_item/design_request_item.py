@@ -2,6 +2,8 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import now_datetime
+from frappe.utils import getdate
+from frappe.utils import now_datetime
 import frappe.model.naming
 
 class DesignRequestItem(Document):
@@ -25,7 +27,7 @@ class DesignRequestItem(Document):
             else:
                 next_number = 1
             
-            self.name = f"DESIGN-ITEM-{next_number:04d}"
+            self.name = f"DES-IT-{next_number:06d}"
     
     def validate(self):
         """Validate Design Request Item"""
@@ -55,29 +57,70 @@ class DesignRequestItem(Document):
     def handle_approval_status_change(self):
         """Handle approval status changes"""
         if self.has_value_changed("approval_status"):
-            if self.approval_status == "Approved":
-                self.design_status = "Design"
+            # If a revision is being requested explicitly
+            if self.approval_status == "Revised":
+                # Mark revision flag; keep current design_status unchanged
+                self.revision_requested = 1
                 self.approval_date = now_datetime()
-            elif self.approval_status in ["Rejected", "On Hold"]:
-                self.design_status = "On Hold"
+                # Log revision request in stage transition log
+                try:
+                    self.append("stage_transition_log", {
+                        "stage": "revision",
+                        "from_status": self.get_doc_before_save().design_status if self.get_doc_before_save() else self.design_status,
+                        "to_status": self.design_status,
+                        "transition_date": now_datetime(),
+                        "transitioned_by": frappe.session.user,
+                        "remarks": f"Revision requested: {getattr(self, 'revision_reason', '') or ''}"
+                    })
+                except Exception:
+                    pass
+                return
+            
+            if self.approval_status == "Approved":
+                self.approval_date = now_datetime()
+                # If there is an active revision request, only Planning User or System Manager can approve
+                if getattr(self, "revision_requested", 0):
+                    user_roles = set(frappe.get_roles())
+                    allowed_roles = {"Planning User", "System Manager"}
+                    if not (user_roles & allowed_roles):
+                        frappe.throw(_("Only Planning User or System Manager can approve a revision request."))
+                    # Revision approved: send item back to Modelling and increment count
+                    self.design_status = "Modelling"
+                    try:
+                        self.revision_count = (self.revision_count or 0) + 1
+                    except Exception:
+                        self.revision_count = 1
+                    self.revision_requested = 0
+                else:
+                    # Normal approval flow
+                    self.design_status = "Design"
+            elif self.approval_status == "Rejected":
+                # Send back to Approval Drawing; no On Hold state in design_status
+                self.design_status = "Approval Drawing"
+                self.approval_date = now_datetime()
+            elif self.approval_status == "On Hold":
+                # Do not change design_status; only approval_status reflects hold
                 self.approval_date = now_datetime()
     
     def log_stage_transition(self):
-        """Log stage transitions"""
+        """Log stage transitions (store as child rows, not raw dicts)"""
+        if self.is_new():
+            # don't log on first insert
+            return
         if self.has_value_changed("design_status"):
-            transition = {
+            # set timing fields for Gantt
+            if not self.start_date and self.design_status and self.design_status != "Pending":
+                self.start_date = now_datetime()
+            if self.design_status == "Completed" and not self.completion_date:
+                self.completion_date = now_datetime()
+            self.append("stage_transition_log", {
                 "stage": "design_status",
                 "from_status": self.get_doc_before_save().design_status if self.get_doc_before_save() else "",
                 "to_status": self.design_status,
                 "transition_date": now_datetime(),
                 "transitioned_by": frappe.session.user,
                 "remarks": f"Status changed to {self.design_status}"
-            }
-            
-            if not self.stage_transition_log:
-                self.stage_transition_log = []
-            
-            self.stage_transition_log.append(transition)
+            })
     
     def handle_field_dependencies(self):
         """Handle automatic field updates based on dependencies"""
@@ -116,7 +159,9 @@ def update_design_status(docname, new_status):
         frappe.log_error(f"Error updating design status: {str(e)}")
         return {"success": False, "error": str(e)}
 
-@frappe.whitelist()
+
+
+
 def update_approval_status(docname, new_status):
     """Update approval status from list view"""
     try:

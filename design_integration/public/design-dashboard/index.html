@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="/favicon.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-title" content="Design Integration" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Inter:wght@100..900&display=swap"
+    rel="stylesheet">
+  <title>Design Integration Dashboard</title>
+  
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --primary-color: #667eea;
+      --secondary-color: #764ba2;
+      --success-color: #4CAF50;
+      --warning-color: #FF9800;
+      --danger-color: #F44336;
+      --info-color: #2196F3;
+      --dark-color: #343a40;
+      --light-color: #f8f9fa;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+    }
+
+    .dashboard-header {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      color: white;
+      padding: 2rem 0;
+      margin-bottom: 2rem;
+      border-radius: 0 0 20px 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 15px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: none;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .stat-card.success { border-left: 5px solid var(--success-color); }
+    .stat-card.warning { border-left: 5px solid var(--warning-color); }
+    .stat-card.info { border-left: 5px solid var(--info-color); }
+    .stat-card.danger { border-left: 5px solid var(--danger-color); }
+
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      color: #6c757d;
+      font-weight: 500;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .chart-container {
+      background: white;
+      border-radius: 15px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .chart-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--dark-color);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .list-container {
+      background: white;
+      border-radius: 15px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .list-item {
+      border: 1px solid #e9ecef;
+      border-radius: 10px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .list-item:hover {
+      border-color: var(--primary-color);
+      box-shadow: 0 2px 10px rgba(102, 126, 234, 0.1);
+    }
+
+    .status-badge {
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+
+    .priority-badge {
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .filter-section {
+      background: white;
+      border-radius: 15px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .btn-custom {
+      border-radius: 25px;
+      padding: 0.5rem 1.5rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .btn-custom:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .loading-spinner {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 3rem;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: #6c757d;
+    }
+
+    .empty-state i {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-header {
+        padding: 1.5rem 0;
+        margin-bottom: 1.5rem;
+      }
+      
+      .stat-card {
+        margin-bottom: 1rem;
+      }
+      
+      .chart-container, .list-container, .filter-section {
+        margin-bottom: 1rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <h1 class="h2 mb-2">
+              <i class="fas fa-chart-line me-3"></i>
+              Design Integration Dashboard
+            </h1>
+            <p class="mb-0 opacity-75">Monitor and manage your design workflow efficiently</p>
+          </div>
+          <div class="col-md-4 text-end">
+            <button class="btn btn-light btn-lg btn-custom" onclick="refreshDashboard()">
+              <i class="fas fa-sync-alt me-2"></i>Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- Statistics Cards -->
+      <div class="row mb-4">
+        <div class="col-md-3">
+          <div class="stat-card success">
+            <div class="text-center">
+              <div class="stat-number" id="total-items">0</div>
+              <div class="stat-label">Total Items</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card warning">
+            <div class="text-center">
+              <div class="stat-number" id="pending-items">0</div>
+              <div class="stat-label">Pending Items</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card info">
+            <div class="text-center">
+              <div class="stat-number" id="completed-items">0</div>
+              <div class="stat-label">Completed Items</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card danger">
+            <div class="text-center">
+              <div class="stat-number" id="overdue-items">0</div>
+              <div class="stat-label">Overdue Items</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filters Section -->
+      <div class="filter-section">
+        <h5 class="chart-title">
+          <i class="fas fa-filter text-primary"></i>
+          Filters
+        </h5>
+        <div class="row">
+          <div class="col-md-2 mb-3">
+            <label class="form-label">Item Status</label>
+            <select class="form-select" id="status-filter">
+              <option value="">All Status</option>
+              <option value="Pending">Pending</option>
+              <option value="Approval Drawing">Approval Drawing</option>
+              <option value="Send for Approval">Send for Approval</option>
+              <option value="Design">Design</option>
+              <option value="Modelling">Modelling</option>
+              <option value="Production Drawing">Production Drawing</option>
+              <option value="SKU Generation">SKU Generation</option>
+              <option value="BOM">BOM</option>
+              <option value="Nesting">Nesting</option>
+              <option value="Completed">Completed</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+          </div>
+          <div class="col-md-2 mb-3">
+            <label class="form-label">Priority</label>
+            <select class="form-select" id="priority-filter">
+              <option value="">All Priorities</option>
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
+          </div>
+          <div class="col-md-2 mb-3">
+            <label class="form-label">Customer</label>
+            <input type="text" class="form-control" id="customer-filter" placeholder="Search customer">
+          </div>
+          <div class="col-md-2 mb-3">
+            <label class="form-label">Sales Order</label>
+            <input type="text" class="form-control" id="so-filter" placeholder="Search SO">
+          </div>
+          <div class="col-md-2 mb-3">
+            <label class="form-label">Assigned To</label>
+            <select class="form-control" id="assigned-filter">
+              <option value="">All Users</option>
+              <option value="me">My Items</option>
+            </select>
+          </div>
+          <div class="col-md-2 mb-3">
+            <label class="form-label">&nbsp;</label><br>
+            <button class="btn btn-primary btn-custom w-100" onclick="applyFilters()">
+              <i class="fas fa-search me-2"></i>Apply
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <div class="chart-container">
+            <h5 class="chart-title">
+              <i class="fas fa-chart-pie text-success"></i>
+              Items by Status
+            </h5>
+            <canvas id="statusChart" width="400" height="300"></canvas>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="chart-container">
+            <h5 class="chart-title">
+              <i class="fas fa-chart-bar text-info"></i>
+              Items by Priority
+            </h5>
+            <canvas id="priorityChart" width="400" height="300"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional Charts Row -->
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <div class="chart-container">
+            <h5 class="chart-title">
+              <i class="fas fa-chart-line text-warning"></i>
+              Weekly Progress
+            </h5>
+            <canvas id="progressChart" width="400" height="300"></canvas>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="chart-container">
+            <h5 class="chart-title">
+              <i class="fas fa-clock text-danger"></i>
+              Completion Timeline
+            </h5>
+            <canvas id="timelineChart" width="400" height="300"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Design Items List -->
+      <div class="list-container">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="chart-title mb-0">
+            <i class="fas fa-list text-primary"></i>
+            Design Items
+          </h5>
+          <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary btn-sm" onclick="exportData()">
+              <i class="fas fa-download me-2"></i>Export
+            </button>
+            <button type="button" class="btn btn-outline-success btn-sm" onclick="refreshList()">
+              <i class="fas fa-sync-alt me-2"></i>Refresh
+            </button>
+          </div>
+        </div>
+        <div id="items-list">
+          <div class="loading-spinner">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <span class="ms-2">Loading design items...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activities -->
+      <div class="list-container">
+        <h5 class="chart-title">
+          <i class="fas fa-history text-info"></i>
+          Recent Activities
+        </h5>
+        <div id="activities-list">
+          <div class="loading-spinner">
+            <div class="spinner-border text-info" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <span class="ms-2">Loading activities...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Frappe Integration -->
+  <script src="frappe-integration.js"></script>
+  
+  <script>
+    // Global variables
+    let currentFilters = {};
+    let charts = {};
+    let dashboardData = {};
+
+    // Initialize dashboard when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      loadDashboardData();
+      setupEventListeners();
+      initializeCharts();
+    });
+
+    function setupEventListeners() {
+      // Add event listeners for filters
+      document.getElementById('status-filter').addEventListener('change', function() {
+        currentFilters.status = this.value;
+      });
+      
+      document.getElementById('priority-filter').addEventListener('change', function() {
+        currentFilters.priority = this.value;
+      });
+      
+      document.getElementById('customer-filter').addEventListener('input', function() {
+        currentFilters.customer = this.value;
+      });
+      
+      document.getElementById('so-filter').addEventListener('input', function() {
+        currentFilters.sales_order = this.value;
+      });
+      
+      document.getElementById('assigned-filter').addEventListener('change', function() {
+        currentFilters.assigned_to = this.value;
+      });
+    }
+
+    function initializeCharts() {
+      // Initialize all charts with placeholder data
+      initializeStatusChart();
+      initializePriorityChart();
+      initializeProgressChart();
+      initializeTimelineChart();
+    }
+
+    function initializeStatusChart() {
+      const ctx = document.getElementById('statusChart').getContext('2d');
+      charts.statusChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Pending', 'In Progress', 'Completed', 'Overdue'],
+          datasets: [{
+            data: [0, 0, 0, 0],
+            backgroundColor: ['#FF9800', '#2196F3', '#4CAF50', '#F44336'],
+            borderWidth: 2,
+            borderColor: '#fff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }
+      });
+    }
+
+    function initializePriorityChart() {
+      const ctx = document.getElementById('priorityChart').getContext('2d');
+      charts.priorityChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Low', 'Medium', 'High'],
+          datasets: [{
+            label: 'Items Count',
+            data: [0, 0, 0],
+            backgroundColor: ['#4CAF50', '#FF9800', '#F44336'],
+            borderWidth: 1,
+            borderColor: '#fff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          },
+          plugins: {
+            legend: {
+              display: false
+            }
+          }
+        }
+      });
+    }
+
+    function initializeProgressChart() {
+      const ctx = document.getElementById('progressChart').getContext('2d');
+      charts.progressChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+          datasets: [{
+            label: 'Completed Items',
+            data: [0, 0, 0, 0],
+            borderColor: '#4CAF50',
+            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+            tension: 0.4,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    function initializeTimelineChart() {
+      const ctx = document.getElementById('timelineChart').getContext('2d');
+      charts.timelineChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+          datasets: [{
+            label: 'Completion Rate',
+            data: [0, 0, 0, 0, 0, 0],
+            backgroundColor: '#2196F3',
+            borderWidth: 1,
+            borderColor: '#fff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100
+            }
+          },
+          plugins: {
+            legend: {
+              display: false
+            }
+          }
+        }
+      });
+    }
+
+    function loadDashboardData() {
+      // Show loading state
+      showLoadingState();
+      
+      // Simulate API call (replace with actual Frappe API call)
+      setTimeout(() => {
+        // Mock data for demonstration
+        dashboardData = {
+          stats: {
+            total_items: 156,
+            pending_items: 89,
+            completed_items: 45,
+            overdue_items: 22
+          },
+          items: generateMockItems(),
+          activities: generateMockActivities()
+        };
+        
+        updateDashboard();
+      }, 1000);
+    }
+
+    function generateMockItems() {
+      const statuses = ['Pending', 'Approval Drawing', 'Design', 'Modelling', 'Production Drawing', 'Completed'];
+      const priorities = ['Low', 'Medium', 'High'];
+      const customers = ['ABC Corp', 'XYZ Ltd', 'Tech Solutions', 'Global Industries', 'Innovation Co'];
+      
+      const items = [];
+      for (let i = 1; i <= 20; i++) {
+        items.push({
+          id: `DI-${String(i).padStart(4, '0')}`,
+          name: `Design Item ${i}`,
+          status: statuses[Math.floor(Math.random() * statuses.length)],
+          priority: priorities[Math.floor(Math.random() * priorities.length)],
+          customer: customers[Math.floor(Math.random() * customers.length)],
+          sales_order: `SO-${String(Math.floor(Math.random() * 1000)).padStart(4, '0')}`,
+          assigned_to: `User ${Math.floor(Math.random() * 5) + 1}`,
+          created_date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+          expected_completion: new Date(Date.now() + Math.random() * 14 * 24 * 60 * 60 * 1000).toLocaleDateString()
+        });
+      }
+      return items;
+    }
+
+    function generateMockActivities() {
+      const activities = [
+        { type: 'status_change', message: 'Item DI-0001 status updated to Design', timestamp: '2 hours ago', icon: 'fas fa-arrow-up' },
+        { type: 'completion', message: 'Item DI-0005 completed successfully', timestamp: '4 hours ago', icon: 'fas fa-check' },
+        { type: 'assignment', message: 'Item DI-0008 assigned to User 3', timestamp: '6 hours ago', icon: 'fas fa-user-plus' },
+        { type: 'comment', message: 'New comment added to DI-0012', timestamp: '8 hours ago', icon: 'fas fa-comment' },
+        { type: 'creation', message: 'New design item DI-0020 created', timestamp: '1 day ago', icon: 'fas fa-plus' }
+      ];
+      return activities;
+    }
+
+    function updateDashboard() {
+      updateStats();
+      updateCharts();
+      updateItemsList();
+      updateActivitiesList();
+    }
+
+    function updateStats() {
+      if (dashboardData.stats) {
+        document.getElementById('total-items').textContent = dashboardData.stats.total_items;
+        document.getElementById('pending-items').textContent = dashboardData.stats.pending_items;
+        document.getElementById('completed-items').textContent = dashboardData.stats.completed_items;
+        document.getElementById('overdue-items').textContent = dashboardData.stats.overdue_items;
+      }
+    }
+
+    function updateCharts() {
+      if (dashboardData.items) {
+        // Update status chart
+        const statusCounts = {};
+        dashboardData.items.forEach(item => {
+          statusCounts[item.status] = (statusCounts[item.status] || 0) + 1;
+        });
+        
+        if (charts.statusChart) {
+          charts.statusChart.data.labels = Object.keys(statusCounts);
+          charts.statusChart.data.datasets[0].data = Object.values(statusCounts);
+          charts.statusChart.update();
+        }
+
+        // Update priority chart
+        const priorityCounts = {};
+        dashboardData.items.forEach(item => {
+          priorityCounts[item.priority] = (priorityCounts[item.priority] || 0) + 1;
+        });
+        
+        if (charts.priorityChart) {
+          charts.priorityChart.data.datasets[0].data = [
+            priorityCounts['Low'] || 0,
+            priorityCounts['Medium'] || 0,
+            priorityCounts['High'] || 0
+          ];
+          charts.priorityChart.update();
+        }
+
+        // Update progress chart with mock weekly data
+        if (charts.progressChart) {
+          charts.progressChart.data.datasets[0].data = [12, 19, 15, 25];
+          charts.progressChart.update();
+        }
+
+        // Update timeline chart with mock monthly data
+        if (charts.timelineChart) {
+          charts.timelineChart.data.datasets[0].data = [65, 78, 82, 75, 88, 92];
+          charts.timelineChart.update();
+        }
+      }
+    }
+
+    function updateItemsList() {
+      const container = document.getElementById('items-list');
+      
+      if (!dashboardData.items || dashboardData.items.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h4>No items found</h4>
+            <p>Try adjusting your filters or create new design items.</p>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+      dashboardData.items.forEach(item => {
+        const statusColor = getStatusColor(item.status);
+        const priorityColor = getPriorityColor(item.priority);
+        
+        html += `
+          <div class="list-item">
+            <div class="row align-items-center">
+              <div class="col-md-2">
+                <strong>${item.id}</strong><br>
+                <small class="text-muted">${item.name}</small>
+              </div>
+              <div class="col-md-2">
+                <span class="status-badge badge bg-${statusColor}">${item.status}</span>
+              </div>
+              <div class="col-md-2">
+                <span class="priority-badge badge bg-${priorityColor}">${item.priority}</span>
+              </div>
+              <div class="col-md-2">
+                <strong>${item.customer}</strong><br>
+                <small class="text-muted">${item.sales_order}</small>
+              </div>
+              <div class="col-md-2">
+                <small class="text-muted">
+                  Created: ${item.created_date}<br>
+                  Expected: ${item.expected_completion}
+                </small>
+              </div>
+              <div class="col-md-2 text-end">
+                <button class="btn btn-outline-primary btn-sm btn-custom" onclick="viewItem('${item.id}')">
+                  <i class="fas fa-eye me-1"></i>View
+                </button>
+                <button class="btn btn-outline-success btn-sm btn-custom ms-1" onclick="editItem('${item.id}')">
+                  <i class="fas fa-edit me-1"></i>Edit
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      
+      container.innerHTML = html;
+    }
+
+    function updateActivitiesList() {
+      const container = document.getElementById('activities-list');
+      
+      if (!dashboardData.activities || dashboardData.activities.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-history"></i>
+            <h4>No activities found</h4>
+            <p>Activities will appear here as they occur.</p>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+      dashboardData.activities.forEach(activity => {
+        const iconColor = getActivityIconColor(activity.type);
+        
+        html += `
+          <div class="list-item">
+            <div class="d-flex align-items-center">
+              <div class="me-3">
+                <i class="${activity.icon} text-${iconColor}" style="font-size: 1.2rem;"></i>
+              </div>
+              <div class="flex-grow-1">
+                <div class="fw-medium">${activity.message}</div>
+                <small class="text-muted">${activity.timestamp}</small>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      
+      container.innerHTML = html;
+    }
+
+    function getStatusColor(status) {
+      const colors = {
+        'Pending': 'warning',
+        'Approval Drawing': 'info',
+        'Send for Approval': 'primary',
+        'Design': 'primary',
+        'Modelling': 'info',
+        'Production Drawing': 'warning',
+        'SKU Generation': 'info',
+        'BOM': 'success',
+        'Nesting': 'dark',
+        'Completed': 'success',
+        'Cancelled': 'danger'
+      };
+      return colors[status] || 'secondary';
+    }
+
+    function getPriorityColor(priority) {
+      const colors = {
+        'Low': 'success',
+        'Medium': 'warning',
+        'High': 'danger'
+      };
+      return colors[priority] || 'warning';
+    }
+
+    function getActivityIconColor(type) {
+      const colors = {
+        'status_change': 'primary',
+        'completion': 'success',
+        'assignment': 'info',
+        'comment': 'warning',
+        'creation': 'success'
+      };
+      return colors[type] || 'secondary';
+    }
+
+    function showLoadingState() {
+      document.getElementById('items-list').innerHTML = `
+        <div class="loading-spinner">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <span class="ms-2">Loading design items...</span>
+        </div>
+      `;
+      
+      document.getElementById('activities-list').innerHTML = `
+        <div class="loading-spinner">
+          <div class="spinner-border text-info" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <span class="ms-2">Loading activities...</span>
+        </div>
+      `;
+    }
+
+    function applyFilters() {
+      loadDashboardData();
+    }
+
+    function refreshDashboard() {
+      loadDashboardData();
+    }
+
+    function refreshList() {
+      updateItemsList();
+    }
+
+    function exportData() {
+      // Implement export functionality
+      alert('Export functionality will be implemented here');
+    }
+
+    function viewItem(itemId) {
+      // Implement view item functionality
+      alert(`Viewing item: ${itemId}`);
+    }
+
+    function editItem(itemId) {
+      // Implement edit item functionality
+      alert(`Editing item: ${itemId}`);
+    }
+
+    // Global functions for external access
+    window.refreshDashboard = refreshDashboard;
+    window.applyFilters = applyFilters;
+    window.refreshList = refreshList;
+    window.exportData = exportData;
+    window.viewItem = viewItem;
+    window.editItem = editItem;
+  </script>
+</body>
+
+</html>

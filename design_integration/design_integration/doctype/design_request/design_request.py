@@ -316,12 +316,25 @@ def create_design_request_from_sales_order(sales_order, selected_items=None):
         
         # Save the design request (autoname will be called automatically)
         design_request.insert()
-        
         frappe.logger().info(f"Design request saved with name: {design_request.name}")
+
+        # Create standalone Design Request Item docs for list view
+        for child in design_request.items:
+            item_doc = frappe.new_doc("Design Request Item")
+            item_doc.item_code = child.item_code
+            item_doc.item_name = child.item_name
+            item_doc.description = child.description
+            item_doc.qty = child.qty
+            item_doc.uom = child.uom
+            item_doc.design_status = child.design_status
+            item_doc.approval_status = child.approval_status
+            item_doc.design_request = design_request.name
+            item_doc.company = design_request.company or frappe.defaults.get_global_default("company")
+            item_doc.insert(ignore_permissions=True)
+            # link back
+
         
         # Verify items were saved
-        saved_doc = frappe.get_doc("Design Request", design_request.name)
-        frappe.logger().info(f"Saved design request items count: {len(saved_doc.items)}")
         
         frappe.msgprint(f"Design Request {design_request.name} created successfully with {len(design_request.items)} items")
         return design_request.name

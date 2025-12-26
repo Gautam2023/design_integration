@@ -320,6 +320,19 @@ frappe.ui.form.on("Design Request Item", {
         if (frm.doc.design_status) {
             frm.set_value("current_stage", frm.doc.design_status);
         }
+
+        // Register Gantt settings for this doctype if not already
+        frappe.views.calendar = frappe.views.calendar || {};
+        frappe.views.calendar['Design Request Item'] = frappe.views.calendar['Design Request Item'] || {
+            gantt: {
+                field_map: {
+                    start: 'start_date',
+                    end: 'completion_date',
+                    title: 'item_name',
+                    id: 'name'
+                }
+            }
+        };
     },
     
     design_status: function(frm) {

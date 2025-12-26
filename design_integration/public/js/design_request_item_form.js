@@ -1,17 +1,21 @@
 // Design Request Item Form Customization
 frappe.ui.form.on('Design Request Item', {
     refresh: function(frm) {
+        frm.disable_submit();
         // Create a beautiful 2-column layout
         createTwoColumnLayout(frm);
         
         // Add custom buttons
         addCustomButtons(frm);
+
+        // Enforce allowed design_status options based on approval_status
+        enforceDesignStatusOptions(frm);
     },
     
     design_status: function(frm) {
         // Auto-save when design status changes
         if (frm.doc.design_status) {
-            frm.save('Update', function() {
+            frm.save(null, function() {
                 frappe.show_alert({
                     message: __("Status updated and saved automatically"),
                     indicator: "green"
@@ -23,13 +27,16 @@ frappe.ui.form.on('Design Request Item', {
     approval_status: function(frm) {
         // Auto-save when approval status changes
         if (frm.doc.approval_status) {
-            frm.save('Update', function() {
+            frm.save(null, function() {
                 frappe.show_alert({
                     message: __("Approval status updated and saved automatically"),
                     indicator: "green"
                 }, 3);
             });
         }
+
+        // Refresh allowed options based on new approval_status
+        enforceDesignStatusOptions(frm);
     },
     
     new_item_code: function(frm) {
@@ -49,7 +56,7 @@ frappe.ui.form.on('Design Request Item', {
                     if (r.message) {
                         frm.set_value("new_item_name", r.message.item_name);
                         // Auto-save after setting the item name
-                        frm.save('Update');
+                        frm.save();
                     }
                 }
             });
@@ -75,7 +82,7 @@ frappe.ui.form.on('Design Request Item', {
                 indicator: "green"
             });
             // Auto-save after setting BOM created
-            frm.save('Update');
+            frm.save();
         } else {
             frm.set_value("bom_created", 0);
         }
@@ -113,6 +120,11 @@ function addCustomButtons(frm) {
     frm.add_custom_button(__('Add Approval Remarks'), function() {
         showApprovalRemarksDialog(frm);
     }, __('Actions'));
+
+    // Mark Revision button
+    frm.add_custom_button(__('Mark Revision'), function() {
+        showRevisionDialog(frm);
+    }, __('Actions'));
 }
 
 function showStatusDialog(frm) {
@@ -123,7 +135,7 @@ function showStatusDialog(frm) {
         default: frm.doc.design_status || 'Pending'
     }, function(values) {
         frm.set_value('design_status', values.design_status);
-        frm.save('Update', function() {
+        frm.save(null, function() {
             frappe.show_alert({
                 message: __("Status updated successfully"),
                 indicator: "green"
@@ -140,7 +152,7 @@ function showAssignDialog(frm) {
         default: frm.doc.assigned_to || ''
     }, function(values) {
         frm.set_value('assigned_to', values.assigned_to);
-        frm.save('Update', function() {
+        frm.save(null, function() {
             frappe.show_alert({
                 message: __("Item assigned successfully"),
                 indicator: "green"
@@ -156,7 +168,7 @@ function showApprovalRemarksDialog(frm) {
         default: frm.doc.approval_remarks || ''
     }, function(values) {
         frm.set_value('approval_remarks', values.approval_remarks);
-        frm.save('Update', function() {
+        frm.save(null, function() {
             frappe.show_alert({
                 message: __("Approval remarks added successfully"),
                 indicator: "green"
@@ -164,3 +176,51 @@ function showApprovalRemarksDialog(frm) {
         });
     }, __('Add Remarks'), __('Save'));
 } 
+
+function enforceDesignStatusOptions(frm) {
+    // Allowed sets
+    const preApproval = ['Pending','Approval Drawing','Send for Approval','Cancelled'];
+    const postApproval = ['Design','Modelling','Production Drawing','SKU Generation','BOM','Nesting','Completed','Cancelled'];
+
+    let options = preApproval;
+    if (frm.doc.approval_status === 'Approved') {
+        options = postApproval;
+    } else if (frm.doc.approval_status === 'Rejected') {
+        options = preApproval;
+    }
+
+    frm.set_df_property('design_status', 'options', options.join('\n'));
+
+    // If current value not in allowed, reset to first allowed
+    if (frm.doc.design_status && !options.includes(frm.doc.design_status)) {
+        frm.set_value('design_status', options[0]);
+    }
+}
+
+function showRevisionDialog(frm) {
+    if (!['Modelling','Production Drawing','BOM','Nesting','Completed','Design'].includes(frm.doc.design_status)) {
+        frappe.msgprint(__('Revision can be marked from Design and later stages.'));
+        return;
+    }
+
+    const d = new frappe.ui.Dialog({
+        title: __('Mark Revision'),
+        fields: [
+            { fieldtype: 'Small Text', fieldname: 'revision_reason', label: __('Revision Details'), reqd: 1 },
+            { fieldtype: 'Small Text', fieldname: 'revision_remark', label: __('Remarks') }
+        ],
+        primary_action_label: __('Submit'),
+        primary_action: function() {
+            const values = d.get_values();
+            frm.set_value('revision_reason', values.revision_reason || '');
+            frm.set_value('approval_status', 'Revised');
+            frm.set_value('approval_remarks', values.revision_remark || '');
+            frm.set_value('revision_requested', 1);
+            frm.save(null, function() {
+                frappe.show_alert({ message: __('Revision requested'), indicator: 'orange' }, 3);
+                d.hide();
+            });
+        }
+    });
+    d.show();
+}
