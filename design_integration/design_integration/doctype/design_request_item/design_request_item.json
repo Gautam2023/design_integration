@@ -278,8 +278,13 @@
    "fieldtype": "Section Break"
   }
  ],
- "links": [],
- "modified": "2026-01-20 21:26:24.654135",
+ "links": [
+  {
+   "link_doctype": "Work Order",
+   "link_fieldname": "design_request_item"
+  }
+ ],
+ "modified": "2026-01-21 10:02:16.253139",
  "modified_by": "Administrator",
  "module": "Design Integration",
  "name": "Design Request Item",

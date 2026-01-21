@@ -1,7 +1,6 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:version_tag",
  "creation": "2026-01-07 18:57:07.297169",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -46,11 +45,10 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-07 18:57:07.297169",
+ "modified": "2026-01-21 09:46:17.236654",
  "modified_by": "Administrator",
  "module": "Design Integration",
  "name": "Design Version",
- "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
